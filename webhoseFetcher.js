@@ -1,9 +1,8 @@
 const webhoseio = require('webhoseio');
-
-const webhoseClient = webhoseio.config({ token: 'dcfae39a-1ed7-4227-8de5-515b2b79ccb4' });
-const format = require('pg-format');
+const webhoseClient = webhoseio.config({ token: '/* Enter Webhose API Token here*/' });
 const { p1Sources, p2Sources, p3Sources } = require('./sourceList');
 const { pgClient } = require('./conn');
+const format = require('pg-format');
 
 const apiToDBMap = {
   uuid: 'ARTICLE_ID',
