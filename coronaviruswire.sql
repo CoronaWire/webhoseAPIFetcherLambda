@@ -1,0 +1,38 @@
+DROP DATABASE IF EXISTS coronaviruswire;
+CREATE DATABASE coronaviruswire;
+
+\c coronaviruswire
+
+CREATE TABLE ModerationTable (
+      ID           SERIAL NOT NULL, 
+      ARTICLE_ID   VARCHAR(255) PRIMARY KEY NOT NULL UNIQUE, 
+    
+      TITLE        VARCHAR(255) NOT NULL, 
+      AUTHOR       VARCHAR(255),
+      SOURCE_ID    VARCHAR(255) NOT NULL, 
+      ARTICLE_URL  VARCHAR(255),
+      IMAGE_URL    VARCHAR(255),
+      CONTENT      TEXT NOT NULL, 
+      SUMMARY      TEXT,
+      CATEGORY     TEXT[],
+    
+      POSITIVITY   INT,
+      MOD_STATUS   VARCHAR(255),
+      BOOST_FACTOR FLOAT8,
+      FEATURED     BOOL,
+      
+      SPECIFICITY  VARCHAR(255),
+      COUNTRY      VARCHAR(255),
+      REGION       VARCHAR(255),
+      CITY         VARCHAR(255),
+      LATLONG      POINT,
+    
+      PUBLISHED_AT TIMESTAMP NOT NULL,
+      CREATED_AT   TIMESTAMP NOT NULL DEFAULT NOW(), 
+      CREATED_BY   VARCHAR(255),
+      UPDATED_AT   TIMESTAMP DEFAULT NOW(),
+      UPDATED_BY   VARCHAR(255),
+    
+      NUM_CLICKS   INT,
+      METADATA     JSON
+);
