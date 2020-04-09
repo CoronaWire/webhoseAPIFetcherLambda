@@ -1,7 +1,7 @@
 # webhoseAPIFetcherLambda
 ```bash
 npm install
-node webHoseFetcher.js
+node webhoseFetcher.js
 ```
 
 ## Notes
