@@ -1,9 +1,22 @@
 const webhoseio = require('webhoseio');
-const webhoseClient = webhoseio.config({ token: '/* Enter Webhose API Token here*/' });
+const webhoseClient = webhoseio.config({ token: '/* Enter token here */' });
 const { p1Sources, p2Sources, p3Sources } = require('./sourceList');
-const { pgClient } = require('./conn');
+const { Client } = require('pg');
 const format = require('pg-format');
 
+/* DB connection info */ 
+const pgClient = new Client({
+  user: 'postgres',
+  password: 'admin',
+  host: '/cloudsql/coronawire-2020:us-west1:stagingdb',
+  database: 'webhose_testing',
+  port: 5432
+});
+
+/* Fields we care about from API */
+const fieldArray = ['uuid', 'title', 'site', 'author', 'url', 'text', 'published'];
+
+/* API to DB field mappings */ 
 const apiToDBMap = {
   uuid: 'ARTICLE_ID',
   title: 'TITLE',
@@ -14,14 +27,14 @@ const apiToDBMap = {
   published: 'PUBLISHED_AT',
 };
 
-const fieldArray = ['uuid', 'title', 'site', 'author', 'url', 'text', 'published'];
-
 function getJoinedWebhoseQueryString(newsSource) {
   let compiledStr = '';
   for (const key in newsSource) {
     compiledStr += `site:${newsSource[key]} OR `;
   }
-  return compiledStr.slice(0, -3);
+  compiledStr = `(${compiledStr.slice(0, -3)}) \"corona\" OR \"covid\" OR \"Corona\" OR \"Covid\"`
+  console.log(compiledStr);
+  return compiledStr;
 }
 
 function getOlderUnixTimestampString(howOld) {
@@ -64,6 +77,7 @@ function grabContentAndInsert(queryParams) {
       condensedPosts.forEach((post) => {
         results.push(Object.values(post));
       });
+      console.log(condensedPosts)
       const queryString = format(`INSERT INTO moderationtable(${apiToDBMap.uuid}, ${apiToDBMap.title}, ${apiToDBMap.site}, 
                                                               ${apiToDBMap.author}, ${apiToDBMap.url}, ${apiToDBMap.text}, 
                                                               ${apiToDBMap.published}) VALUES %L ON CONFLICT DO NOTHING`, results);
@@ -77,18 +91,22 @@ function grabContentAndInsert(queryParams) {
     });
 }
 
-async function main() {
-  // Iterate through the different sources (see sourceList.js)
-  const querySources = [p1Sources, p2Sources, p3Sources];
-  for (let i = 0; i < querySources.length; i++) {
-    const queryParams = {
-      q: getJoinedWebhoseQueryString(querySources[i]),
-      ts: getOlderUnixTimestampString('1 hour'),
-      sort: 'published',
-    };
-    await grabContentAndInsert(queryParams);
+exports.main = async (req, res) => {
+  try {
+    await pgClient.connect(); 
+    // Iterate through the different sources (see sourceList.js)
+    const querySources = [p1Sources, p2Sources, p3Sources];
+    for (let i = 0; i < querySources.length; i++) {
+      const queryParams = {
+        q: getJoinedWebhoseQueryString(querySources[i]),
+        ts: getOlderUnixTimestampString('1 hour'),
+        sort: 'published',
+      };
+      await grabContentAndInsert(queryParams);
+    }
+    await pgClient.end();
+    res.status(200).send(`Success inserting new records @ ${new Date()}!`);
+  } catch (e) {
+    res.status(500).send(e);
   }
-  await pgClient.end();
 }
-
-main();

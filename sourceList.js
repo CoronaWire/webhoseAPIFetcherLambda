@@ -4,7 +4,7 @@ const p1Sources = {
   'NY Times': 'nytimes.com',
   //  'Tacoma News Tribune': 'thenewstribune.com',
   'The Mercury News': 'mercurynews.com',
-  CALMatters: 'calmatters.org',
+  'CALMatters': 'calmatters.org',
   'Los Angeles Times': 'latimes.com',
   'Stat News': 'statnews.com',
   //  'The Olympian': 'theolympian.com'
@@ -16,9 +16,9 @@ const p2Sources = {
   'ABC 7 News': 'abc7.com',
   'KRON 4': 'kron4.com',
   'NBC Bay Area': 'nbcbayarea.com',
-  KTVU: 'ktvu.com',
+  'KTVU': 'ktvu.com',
   //  'KPIX': 'sanfrancisco.cbslocal.com',
-  KQED: 'kqed.org',
+  'KQED': 'kqed.org',
   'KOMO News (ABC 4)': 'komonews.com',
   'King 5 News (NBC)': 'king5.com',
   'Kiro7 (CBS)': 'kiro7.com',
@@ -27,7 +27,7 @@ const p2Sources = {
 
 const p3Sources = {
   'Sacramento Bee': 'sacbee.com',
-  NPR: 'npr.org',
+  'NPR': 'npr.org',
   'The Guardian': 'theguardian.com',
   'The Japan Times': 'japantimes.co.jp',
 //  'The Financial Times': 'ft.com'
@@ -66,9 +66,9 @@ const newsAPI = {
   */
 };
 
-module.export = {
+module.exports = {
   p1Sources,
   p2Sources,
   p3Sources,
-  newsAPI,
+  newsAPI
 };
