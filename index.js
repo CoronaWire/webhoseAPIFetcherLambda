@@ -1,17 +1,30 @@
 const webhoseio = require('webhoseio');
 const webhoseClient = webhoseio.config({ token: '/* Enter token here */' });
 const { p1Sources, p2Sources, p3Sources } = require('./sourceList');
-const { Client } = require('pg');
+const Knex = require('knex');
 const format = require('pg-format');
 
 /* DB connection info */ 
-const pgClient = new Client({
-  user: 'postgres',
-  password: 'admin',
-  host: '/cloudsql/coronawire-2020:us-west1:stagingdb',
-  database: 'webhose_testing',
-  port: 5432
-});
+const connect = () => {
+  const db_user = 'postgres';
+	const db_pass = 'admin';
+	const db_name = 'webhose_testing';
+	const cloud_sql_connection_name = 'coronawire-2020:us-west1:stagingdb';
+  const config = {
+    user: db_user, 
+    password: db_pass, 
+    database: db_name,
+  };
+  config.host = `/cloudsql/${cloud_sql_connection_name}`;
+  // Establish a connection to the database
+  const knex = Knex({
+    client: 'pg',
+    connection: config,
+  });
+  return knex;
+};
+
+const knex = connect();
 
 /* Fields we care about from API */
 const fieldArray = ['uuid', 'title', 'site', 'author', 'url', 'text', 'published'];
@@ -77,14 +90,13 @@ function grabContentAndInsert(queryParams) {
       condensedPosts.forEach((post) => {
         results.push(Object.values(post));
       });
-      console.log(condensedPosts)
       const queryString = format(`INSERT INTO moderationtable(${apiToDBMap.uuid}, ${apiToDBMap.title}, ${apiToDBMap.site}, 
                                                               ${apiToDBMap.author}, ${apiToDBMap.url}, ${apiToDBMap.text}, 
                                                               ${apiToDBMap.published}) VALUES %L ON CONFLICT DO NOTHING`, results);
-      return pgClient.query(queryString);
+      return knex.raw(queryString);
     })
     .then(() => {
-      console.log('Successfully inserted records .');
+      console.log('Successfully inserted records.');
     })
     .catch((err) => {
       console.log('Error on Webhose fetch OR DB Insert', err);
@@ -93,7 +105,6 @@ function grabContentAndInsert(queryParams) {
 
 exports.main = async (req, res) => {
   try {
-    await pgClient.connect(); 
     // Iterate through the different sources (see sourceList.js)
     const querySources = [p1Sources, p2Sources, p3Sources];
     for (let i = 0; i < querySources.length; i++) {
@@ -104,7 +115,6 @@ exports.main = async (req, res) => {
       };
       await grabContentAndInsert(queryParams);
     }
-    await pgClient.end();
     res.status(200).send(`Success inserting new records @ ${new Date()}!`);
   } catch (e) {
     res.status(500).send(e);
